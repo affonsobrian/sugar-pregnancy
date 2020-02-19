@@ -11,6 +11,11 @@ from rest_framework_simplejwt import views as jwt_views
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
+router.register(r'states', views.StateViewSet)
+router.register(r'doctor', views.DoctorViewSet)
+router.register(r'hospital', views.HospitalViewSet)
+router.register(r'patient', views.PatientViewSet)
+router.register(r'glicemic', views.GlycemicMeasurementViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
