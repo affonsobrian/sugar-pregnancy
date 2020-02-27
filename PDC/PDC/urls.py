@@ -12,9 +12,9 @@ router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
 router.register(r'states', views.StateViewSet)
-router.register(r'doctor', views.DoctorViewSet)
-router.register(r'hospital', views.HospitalViewSet)
-router.register(r'patient', views.PatientViewSet)
+router.register(r'doctors', views.DoctorViewSet)
+router.register(r'hospitals', views.HospitalViewSet)
+router.register(r'patients', views.PatientViewSet)
 router.register(r'glicemic', views.GlycemicMeasurementViewSet)
 
 urlpatterns = [

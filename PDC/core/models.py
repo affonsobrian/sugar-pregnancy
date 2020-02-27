@@ -33,6 +33,7 @@ class Patient(models.Model):
     height = models.FloatField()
     acanthosis = models.BooleanField()
     gestational_parity = models.IntegerField(choices=[(0, "Primeira"), (1, "Multipla")])
+    doctors = models.ManyToManyField(Doctor, related_name="patients", related_query_name="patient",)
 
     def __str__(self):
         full_name = f"{self.user.first_name}  {self.user.last_name}"

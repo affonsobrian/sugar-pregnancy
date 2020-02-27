@@ -25,7 +25,7 @@ class StateSerializer(serializers.HyperlinkedModelSerializer):
 class DoctorSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Doctor
-        fields = ['url', 'user', 'crm', 'state']
+        fields = ['url', 'user', 'crm', 'state', 'patients']
 
 
 class HospitalSerializer(serializers.HyperlinkedModelSerializer):
@@ -38,8 +38,8 @@ class PatientSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Patient
         fields = ['url', 'user', 'birthday', 'gestational_diabetes_history',
-                  'familiar_diabetes_history','height', 'weight', 'acanthosis',
-                  'gestational_parity']
+                  'familiar_diabetes_history', 'height', 'weight', 'acanthosis',
+                  'gestational_parity', 'doctors']
 
 
 class GlycemicMeasurementSerializer(serializers.HyperlinkedModelSerializer):

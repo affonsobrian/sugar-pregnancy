@@ -14,7 +14,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
-    permission_classes = ()
+    permission_classes = (IsAuthenticated,)
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -23,29 +23,40 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = ()
+    permission_classes = (IsAuthenticated,)
 
 
 class StateViewSet(viewsets.ModelViewSet):
     queryset = State.objects.all()
     serializer_class = StateSerializer
+    permission_classes = (IsAuthenticated,)
 
 
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
+    permission_classes = (IsAuthenticated,)
 
 
 class HospitalViewSet(viewsets.ModelViewSet):
     queryset = Hospital.objects.all()
     serializer_class = HospitalSerializer
+    permission_classes = (IsAuthenticated,)
 
 
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
+    permission_classes = (IsAuthenticated,)
 
 
 class GlycemicMeasurementViewSet(viewsets.ModelViewSet):
-    queryset = GlycemicMeasurement.objects.all()
     serializer_class = GlycemicMeasurementSerializer
+    queryset = GlycemicMeasurement.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.doctor:
+            return GlycemicMeasurement.objects.filter(patient__in=user.doctor.patients.all())
+        return GlycemicMeasurement.objects.filter(patient=user.patient)
