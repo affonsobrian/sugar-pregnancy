@@ -7,7 +7,19 @@ from core.models import State, Doctor, Hospital, Patient, GlycemicMeasurement
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups']
+        fields = ['url', 'username', 'email', 'groups', 'password']
+        required = ['password']
+
+    def create(self, validated_data):
+        instance = super(UserSerializer, self).create(validated_data)
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return instance
 
 
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
