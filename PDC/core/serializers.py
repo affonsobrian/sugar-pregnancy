@@ -3,12 +3,16 @@ from rest_framework import serializers
 
 from core.models import State, Doctor, Hospital, Patient, GlycemicMeasurement
 
+from core.models import RequestManagement
+
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups', 'password']
-        required = ['password']
+        fields = ['url', 'first_name', 'last_name', 'username', 'email', 'groups', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
 
     def create(self, validated_data):
         instance = super(UserSerializer, self).create(validated_data)
@@ -38,6 +42,7 @@ class DoctorSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Doctor
         fields = ['url', 'user', 'crm', 'state', 'patients']
+        read_only = ['patients']
 
 
 class HospitalSerializer(serializers.HyperlinkedModelSerializer):
@@ -58,3 +63,38 @@ class GlycemicMeasurementSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = GlycemicMeasurement
         fields = ['url', 'date', 'patient', 'measurement']
+
+
+class RequestManagementSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = RequestManagement
+        fields = ['url', 'user', 'doctor', 'invite_code']
+        read_only_fields = ['user']
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context["request"].user
+        return super(RequestManagementSerializer, self).create(validated_data)
+
+
+class AcceptRequestManagementSerializer(serializers.HyperlinkedModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = RequestManagement
+        fields = ['invite_code', 'user']
+
+    def create(self, validated_data):
+        request_management = RequestManagement.objects.get(invite_code=validated_data['invite_code'])
+        if request_management.accepted:
+            return request_management
+        if request_management.user.is_patient():
+            p = request_management.user.patient
+            p.doctors.add(request_management.doctor)
+        else:
+            p = Patient()
+            p.user = request_management.user
+            p.save()
+            p.doctors.add(request_management.doctor)
+        request_management.accepted = True
+        request_management.save()
+        return request_management

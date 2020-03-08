@@ -1,20 +1,27 @@
-from django.conf.urls import url
 from django.contrib.auth.models import User, Group
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from core.models import State, Doctor, Hospital, Patient, GlycemicMeasurement
 from core.serializers import UserSerializer, GroupSerializer, StateSerializer, DoctorSerializer, HospitalSerializer, \
-    PatientSerializer, GlycemicMeasurementSerializer
+    PatientSerializer, GlycemicMeasurementSerializer, AcceptRequestManagementSerializer
+
+from core.permission.permissions import IsAuthenticatedOrWriteOnly, ChangeItSelfOnly, IsDoctor, IsPatient
+
+from core.models import RequestManagement
+from core.serializers import RequestManagementSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = User.objects.all().order_by('-date_joined')
+    queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrWriteOnly,)
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -29,13 +36,13 @@ class GroupViewSet(viewsets.ModelViewSet):
 class StateViewSet(viewsets.ModelViewSet):
     queryset = State.objects.all()
     serializer_class = StateSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = ()
 
 
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, ChangeItSelfOnly)
 
 
 class HospitalViewSet(viewsets.ModelViewSet):
@@ -49,6 +56,13 @@ class PatientViewSet(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
     permission_classes = (IsAuthenticated,)
 
+    def get_queryset(self):
+        if self.request.user.is_doctor():
+            return self.request.user.doctor.patients.all()
+        if self.request.user.is_patient():
+            return Patient.objects.filter(id=self.request.user.patient.id)
+        return Patient.objects.none()
+
 
 class GlycemicMeasurementViewSet(viewsets.ModelViewSet):
     serializer_class = GlycemicMeasurementSerializer
@@ -57,6 +71,27 @@ class GlycemicMeasurementViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.doctor:
+        if user.is_doctor():
             return GlycemicMeasurement.objects.filter(patient__in=user.doctor.patients.all())
-        return GlycemicMeasurement.objects.filter(patient=user.patient)
+        if user.is_patient():
+            return GlycemicMeasurement.objects.filter(patient=user.patient)
+        return GlycemicMeasurement.objects.none()
+
+
+class AcceptRequestManagementViewSet(viewsets.ModelViewSet):
+    serializer_class = AcceptRequestManagementSerializer
+    queryset = RequestManagement.objects.all()
+    permission_classes = (IsDoctor,)
+
+    def get_queryset(self):
+        return RequestManagement.objects.filter(doctor=self.request.user.doctor, accepted=False).order_by('created_at')
+
+
+class RequestManagementViewSet(viewsets.ModelViewSet):
+    serializer_class = RequestManagementSerializer
+    queryset = RequestManagement.objects.all()
+    permission_classes = (IsPatient,)
+
+    def get_queryset(self):
+        return RequestManagement.objects.filter(user=self.request.user)
+
