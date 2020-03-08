@@ -73,6 +73,16 @@ class RequestManagementSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'user', 'doctor', 'invite_code']
         read_only_fields = ['user']
 
+    def validate(self, attrs):
+        attrs = super(RequestManagementSerializer, self).validate(attrs)
+        user = self.context['request'].user
+        doctor = attrs['doctor']
+        search = RequestManagement.objects.filter(user=user, doctor=doctor)
+        if search.exists():
+            raise serializers.ValidationError("There's a request already, or the doctor is"
+                                              " already connected to the given user.")
+        return attrs
+
     def create(self, validated_data):
         validated_data['user'] = self.context["request"].user
         return super(RequestManagementSerializer, self).create(validated_data)
