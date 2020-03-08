@@ -86,7 +86,8 @@ class AcceptRequestManagementSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['invite_code', 'user']
 
     def create(self, validated_data):
-        request_management = RequestManagement.objects.get(invite_code=validated_data['invite_code'])
+        request_management = RequestManagement.objects.get(invite_code=validated_data['invite_code'],
+                                                           doctor=self.request.user.doctor)
         if request_management.accepted:
             return request_management
         if request_management.user.is_patient():
