@@ -23,12 +23,18 @@ class Doctor(models.Model):
     crm = models.IntegerField(null=False, blank=False)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.user.get_full_name()
+
 
 class Hospital(models.Model):
     name = models.CharField(max_length=140)
     address = models.TextField()
     phone = PhoneField(blank=True, null=True)
     doctors = models.ManyToManyField(Doctor)
+
+    def __str__(self):
+        return self.name
 
 
 class Patient(models.Model):
@@ -43,10 +49,7 @@ class Patient(models.Model):
     doctors = models.ManyToManyField(Doctor, related_name="patients", related_query_name="patient",)
 
     def __str__(self):
-        full_name = f"{self.user.first_name}  {self.user.last_name}"
-        if full_name.replace(" ", ""):
-            return full_name
-        return self.user.email
+        return self.user.get_full_name()
 
 
 class GlycemicMeasurement(models.Model):
@@ -56,6 +59,9 @@ class GlycemicMeasurement(models.Model):
     date = models.DateTimeField()
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     measurement = models.FloatField()
+
+    def __str__(self):
+        return f"{self.date} - {self.patient.user.get_full_name()}"
 
 
 class RequestManagement(models.Model):

@@ -6,7 +6,7 @@ from core.models import State, Doctor, Hospital, Patient, GlycemicMeasurement
 from core.serializers import UserSerializer, GroupSerializer, StateSerializer, DoctorSerializer, HospitalSerializer, \
     PatientSerializer, GlycemicMeasurementSerializer, AcceptRequestManagementSerializer
 
-from core.permission.permissions import IsAuthenticatedOrWriteOnly, ChangeItSelfOnly, IsDoctor, IsPatient
+from core.permission.permissions import IsAuthenticatedOrWriteOnly, ChangeItSelfOnly, IsDoctor, IsPatient, IsNotDoctor
 
 from core.models import RequestManagement
 from core.serializers import RequestManagementSerializer
@@ -90,7 +90,7 @@ class AcceptRequestManagementViewSet(viewsets.ModelViewSet):
 class RequestManagementViewSet(viewsets.ModelViewSet):
     serializer_class = RequestManagementSerializer
     queryset = RequestManagement.objects.all()
-    permission_classes = (IsPatient,)
+    permission_classes = (IsNotDoctor,)
 
     def get_queryset(self):
         return RequestManagement.objects.filter(user=self.request.user)
