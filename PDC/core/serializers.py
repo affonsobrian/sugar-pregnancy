@@ -94,6 +94,9 @@ class AcceptRequestManagementSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = RequestManagement
         fields = ['invite_code', 'user']
+        extra_kwargs = {
+            'invite_code': {'required': True}
+        }
 
     def create(self, validated_data):
         request_management = RequestManagement.objects.get(invite_code=validated_data['invite_code'],
