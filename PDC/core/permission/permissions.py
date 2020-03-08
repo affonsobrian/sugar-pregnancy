@@ -11,7 +11,7 @@ class IsDoctor(IsAuthenticated):
 
 class IsNotDoctor(IsAuthenticated):
     def has_permission(self, request, view):
-        authenticated = super(IsDoctor, self).has_permission(request, view)
+        authenticated = super(IsNotDoctor, self).has_permission(request, view)
         if not authenticated:
             return False
         return bool(not request.user.is_doctor())
